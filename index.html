@@ -65,7 +65,7 @@ button{font-family:inherit}svg{flex:none}
 .it{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border-radius:14px;margin-bottom:8px;cursor:pointer;background:var(--bg);transition:.2s;min-height:46px;border:1px solid transparent}.it:hover{border-color:var(--g,var(--pri2))}
 .it.on{background:var(--soft);border-color:var(--g,var(--pri2))}.it.on .tx{text-decoration:line-through;opacity:.55}
 .bx{flex:0 0 22px;height:22px;border:2px solid var(--mut);border-radius:7px;display:grid;place-items:center;color:transparent;font-size:13px;margin-top:1px;transition:.2s}.it.on .bx{background:var(--g,var(--pri));border-color:var(--g,var(--pri));color:#fff}
-.pop .bx{animation:pop .4s}.tag{font-size:10.5px;color:var(--g,var(--pri));font-weight:700;display:block;text-transform:uppercase;letter-spacing:.05em}.tx{font-size:13.5px}.it>div:nth-child(2){flex:1}
+.it.miss{border-color:rgba(229,100,92,.35)}.it.miss .bx{border-color:var(--bad);color:var(--bad);background:rgba(229,100,92,.12);font-weight:700}.pop .bx{animation:pop .4s}.tag{font-size:10.5px;color:var(--g,var(--pri));font-weight:700;display:block;text-transform:uppercase;letter-spacing:.05em}.tx{font-size:13.5px}.it>div:nth-child(2){flex:1}
 .x{border:0;background:none;color:var(--mut);font-size:20px;cursor:pointer;padding:0 6px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .strip{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scroll-snap-type:x proximity}
 .chip{flex:0 0 auto;width:60px;border:0;background:var(--card);color:var(--ink);border-radius:16px;padding:7px 0;text-align:center;cursor:pointer;scroll-snap-align:center;box-shadow:var(--sh);transition:transform .15s}.chip:hover{transform:translateY(-2px)}
@@ -150,7 +150,7 @@ function pd(s){var a=s.split('-');return new Date(+a[0],a[1]-1,+a[2])}
 function iso(d){return d.getFullYear()+'-'+('0'+(d.getMonth()+1)).slice(-2)+'-'+('0'+d.getDate()).slice(-2)}
 function tod(){var t=new Date();t.setHours(0,0,0,0);return t}
 function diff(a,b){return Math.round((a-b)/864e5)}
-function ad(i){return new Date(2026,9,21+i)}
+function ad(i){return new Date(2026,9,26+i)}
 function fmt(d,sh){return d.toLocaleDateString('en-GB',sh?{day:'numeric',month:'short'}:{weekday:'long',day:'numeric',month:'short',year:'numeric'})}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function TD(){return diff(tod(),ad(0))}
@@ -170,7 +170,8 @@ function streaks(){var td=Math.min(TD(),89),run=0,best=0,cur=0,i;for(i=0;i<=td;i
  i=td;if(i>=0&&hc(i)[0]/hc(i)[1]<.7)i--;while(i>=0&&hc(i)[0]/hc(i)[1]>=.7){cur++;i--}return [cur,best]}
 function mocks(){return S.mocks.slice().sort(function(a,b){return a.d<b.d?-1:a.d>b.d?1:0})}
 function mp(m){return Math.round(m.o/m.t*1000)/10}
-function item(k,tag,t,del,n){return '<div class="it'+(S.c[k]?' on':'')+'" data-k="'+k+'"><div class="bx">✓</div><div>'+(tag?'<span class="tag">'+esc(tag)+'</span>':'')+'<span class="tx">'+esc(t)+'</span></div>'+(del?'<button class="x" data-a="'+del+'" data-n="'+n+'" title="Remove">×</button>':'')+'</div>'}
+function past(k){var m=/^h(\d+)_/.exec(k);if(m)return ad(+m[1])<tod();m=/^s(.+)_(\d+)_\d+$/.exec(k);if(m){var p=S.plans.filter(function(q){return q.id==m[1]})[0];if(p){var s0=pd(p.start);return new Date(s0.getFullYear(),s0.getMonth(),s0.getDate()+ +m[2])<tod()}}return false}
+function item(k,tag,t,del,n){var ms=!S.c[k]&&past(k);return '<div class="it'+(S.c[k]?' on':ms?' miss':'')+'" data-k="'+k+'"><div class="bx">'+(ms?'✕':'✓')+'</div><div>'+(tag?'<span class="tag">'+esc(tag)+'</span>':'')+'<span class="tx">'+esc(t)+'</span></div>'+(del?'<button class="x" data-a="'+del+'" data-n="'+n+'" title="Remove">×</button>':'')+'</div>'}
 function ring(p,l,s,col){var c=2*Math.PI*34;return '<div class="rg"><svg viewBox="0 0 80 80" width="88" height="88"><circle cx="40" cy="40" r="34" fill="none" stroke="var(--line)" stroke-width="8"/><circle cx="40" cy="40" r="34" fill="none" stroke="'+col+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+(c*p/100)+' '+c+'" transform="rotate(-90 40 40)"/><text x="40" y="45" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)">'+p+'%</text></svg><b>'+l+'</b><span>'+s+'</span></div>'}
 function chart(m){if(!m.length)return '<p class="sub">No mock tests yet. Add your first score in the Mock Tests tab.</p>';
  var w=600,h=220,L=38,R=16,T=18,B=34,n=m.length,s='<svg viewBox="0 0 '+w+' '+h+'" width="100%" role="img" aria-label="Mock test score trend">';
@@ -201,7 +202,7 @@ function gauge(comp,prog,pend){var sg=[[comp,'var(--gd)'],[prog,'var(--gm)'],[pe
 function vDash(){var td=TD(),a=P(),n=a.days.length,sd=diff(tod(),pd(a.start)),st=streaks(),m=mocks(),ms=mstats(m),inR=td>=0&&td<90,di=Math.max(0,Math.min(89,td)),h='';
  var left=diff(new Date(2026,10,20),tod()),avg=m.length?parseFloat(ms.avg):'–',hr=new Date().getHours(),gr=hr<12?'Good morning':hr<17?'Good afternoon':'Good evening';
  h+='<div class="ph"><div><h1>Dashboard</h1><p>'+gr+'. Plan, prioritise and accomplish your goals with ease.</p></div><div class="acts"><button class="btn" data-a="gohab">+ Log today</button><button class="btn ol" data-a="gomock">Add mock score</button></div></div><div class="dg">';
- h+='<div class="s6">'+sc('hl','hab',td<0?'Winter Arc starts in':'Winter Arc day',td<0?-td:Math.min(td+1,90),td<0?' days':'',0,td<0?'Begins 21 Oct 2026':ph(di)[0])+'</div>';
+ h+='<div class="s6">'+sc('hl','hab',td<0?'Winter Arc starts in':'Winter Arc day',td<0?-td:Math.min(td+1,90),td<0?' days':'',0,td<0?'Begins 26 Oct 2026':ph(di)[0])+'</div>';
  h+='<div class="s6">'+sc('','stu','Days to JCA exam',left>=0?left:'–',' days',0,'Exam on 20 Nov 2026')+'</div>';
  h+='<div class="s6">'+sc('','hab','Day streak',st[0],' days',0,'Best streak: '+st[1]+' days')+'</div>';
  h+='<div class="s6">'+sc('','mock','Mock average',avg,'%',1,m.length?m.length+' test'+(m.length>1?'s':'')+' recorded':'Add your first score')+'</div>';
